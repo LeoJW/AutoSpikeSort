@@ -1,6 +1,6 @@
 .ipynb_checkpoints
 in_container_python_base
 kilosort3/
-*phy_folder
+phy_folder*
 *waveforms
 quickPlot.ipynb
