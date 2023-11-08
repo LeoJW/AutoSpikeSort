@@ -4,3 +4,9 @@ kilosort3/
 phy_folder*
 *waveforms
 quickPlot.ipynb
+PlotWaveforms.ipynb
+*.npz
+kilosort2_5/
+matlabNPY/
+mountainsort5/
+
