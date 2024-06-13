@@ -7,6 +7,13 @@ Created 2023/03/01
 Generates json files for all of the main probes used by Sponberg lab
 Includes device indices from plugging into intan RHD32 headstage
 
+Note about Neuronexus probe names: 
+A1x32 - Poly5 - 6mm - 35s - 100
+{type}{#shanks}x{#sites/shank} - {site layout} - {shank length} {site spacing um, center-to-center} - {shank spacing, um, optional} - {site area um^2}
+
+So A4x8-5mm-50-400-413 is:
+1 or 2 dimensional probe (A), 4 shanks, 8 sites each, 5mm long shanks, 50um between sites, 400um between shanks, each site is 413um^2
+
 Please add new probes as you start using them!
 """
 import numpy as np
@@ -15,7 +22,7 @@ import os
 
 os.chdir(os.path.dirname(os.path.realpath(__file__)))
 
-#----- CM32 package of A1x32-Poly5-6mm-35s-100
+#----- A1x32-Poly5-6mm-35s-100, CM32 package
 num_columns = 7
 xpitch, ypitch = 14, 35
 num_contact_per_column = [1, 6, 6, 6, 6, 6, 1]
@@ -40,18 +47,16 @@ newpositions = positions[rearrange_indices, :]
 probe = pi.Probe(ndim=2, si_units='um')
 probe.set_contacts(positions=newpositions, shapes='circle', shape_params={'radius' : np.sqrt(100/np.pi)})
 probe.create_auto_shape(probe_type='tip', margin=20)
-
-
 probe.set_device_channel_indices(device_indices)
 probe.annotations['manufacturer'] = 'neuronexus'
 probe.annotations['name'] = 'A1x32-Poly5-6mm-35s-100'
 probe.annotations['package'] = 'CM32'
-
 probegroup = pi.ProbeGroup()
 probegroup.add_probe(probe)
-pi.write_probeinterface('CM32_A1x32-Poly5-6mm-35s-100.json', probegroup)
+pi.write_probeinterface('A1x32-Poly5-6mm-35s-100_CM32.json', probegroup)
 
-#----- A32 acute package of A1x32-Poly5-6mm-35s-100
+
+#----- A1x32-Poly5-6mm-35s-100, A32 acute package
 num_columns = 7
 xpitch, ypitch = 14, 35
 num_contact_per_column = [1, 6, 6, 6, 6, 6, 1]
@@ -76,13 +81,47 @@ newpositions = positions[rearrange_indices, :]
 probe = pi.Probe(ndim=2, si_units='um')
 probe.set_contacts(positions=newpositions, shapes='circle', shape_params={'radius' : np.sqrt(100/np.pi)})
 probe.create_auto_shape(probe_type='tip', margin=20)
-
-
 probe.set_device_channel_indices(device_indices)
 probe.annotations['manufacturer'] = 'neuronexus'
 probe.annotations['name'] = 'A1x32-Poly5-6mm-35s-100'
 probe.annotations['package'] = 'A32'
-
 probegroup = pi.ProbeGroup()
 probegroup.add_probe(probe)
-pi.write_probeinterface('A32_A1x32-Poly5-6mm-35s-100.json', probegroup)
+pi.write_probeinterface('A1x32-Poly5-6mm-35s-100_A32.json', probegroup)
+
+
+#----- A4x8-5mm-50-400-413-A32, A32 acute package
+num_shank = 4
+num_site_per_shank = 8
+spacing = 50
+rearrange_indices = [
+    0, 7, 1, 6, 2, 5, 3, 4,
+    8, 15, 9, 14, 10, 13, 11, 12,
+    16, 23, 17, 22, 18, 21, 19, 20,
+    24, 31, 25, 30, 26, 29, 27, 28]
+# Map from probe -> adaptor
+rearrange_to_adaptor = np.array([15,5,4,14,3,6,2,7,1,8,0,9,13,12,11,10,21,20,19,18,22,24,23,17,25,16,26,28,27,30,29,31])
+# Map from adaptor -> headstage amplifier
+rearrange_to_headstage = np.array([19,28,20,27,21,26,22,25,23,24,16,31,18,29,17,30,14,1,13,2,15,0,8,7,9,6,10,5,11,4,12,3])
+
+# Generate positions
+positions = []
+for shank in range(num_shank):
+    x = np.ones(num_site_per_shank) * shank
+    y = np.arange(num_site_per_shank) * spacing
+    positions.append(np.hstack((x[:, None], y[:, None])))
+positions = np.vstack(positions)
+positions = positions[rearrange_indices, :]
+
+# Generate probe
+probe = pi.Probe(ndim=2, si_units='um')
+probe.set_contacts(positions=positions, shapes='circle', shape_params={'radius' : np.sqrt(413/np.pi)})
+probe.create_auto_shape(probe_type='tip', margin=20)
+probe.set_device_channel_indices(rearrange_to_headstage[rearrange_to_adaptor])
+probe.annotations['manufacturer'] = 'neuronexus'
+probe.annotations['name'] = 'A4x8-5mm-50-400-413'
+probe.annotations['package'] = 'A32'
+probegroup = pi.ProbeGroup()
+probegroup.add_probe(probe)
+pi.write_probeinterface('A4x8-5mm-50-400-413_A32.json', probegroup)
+
