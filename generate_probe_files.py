@@ -66,7 +66,11 @@ rearrange_indices = [1,0,2,3,4,5,6,
                      13,15,17,18,16,14,
                      19,24,23,22,21,20,
                      30,29,28,27,26,31,25]
-device_indices = [30,26,21,17,27,22,20,25,28,23,19,24,29,18,31,16,0,15,2,13,8,9,7,1,6,14,10,11,5,12,4,3]
+# Map from probe -> adaptor
+rearrange_to_adaptor = np.array([15,5,4,14,3,6,2,7,1,8,0,9,13,12,11,10,21,20,19,18,22,24,23,17,25,16,26,28,27,30,29,31])
+# Map from adaptor -> headstage amplifier
+rearrange_to_headstage = np.array([19,28,20,27,21,26,22,25,23,24,16,31,18,29,17,30,14,1,13,2,15,0,8,7,9,6,10,5,11,4,12,3])
+device_indices = rearrange_to_headstage[rearrange_to_adaptor]
 
 # Generate positions
 positions = []
@@ -103,6 +107,7 @@ rearrange_indices = [
 rearrange_to_adaptor = np.array([15,5,4,14,3,6,2,7,1,8,0,9,13,12,11,10,21,20,19,18,22,24,23,17,25,16,26,28,27,30,29,31])
 # Map from adaptor -> headstage amplifier
 rearrange_to_headstage = np.array([19,28,20,27,21,26,22,25,23,24,16,31,18,29,17,30,14,1,13,2,15,0,8,7,9,6,10,5,11,4,12,3])
+device_indices = rearrange_to_headstage[rearrange_to_adaptor]
 
 # Generate positions
 positions = []
@@ -117,7 +122,7 @@ positions = positions[rearrange_indices, :]
 probe = pi.Probe(ndim=2, si_units='um')
 probe.set_contacts(positions=positions, shapes='circle', shape_params={'radius' : np.sqrt(413/np.pi)})
 probe.create_auto_shape(probe_type='tip', margin=20)
-probe.set_device_channel_indices(rearrange_to_headstage[rearrange_to_adaptor])
+probe.set_device_channel_indices(device_indices)
 probe.annotations['manufacturer'] = 'neuronexus'
 probe.annotations['name'] = 'A4x8-5mm-50-400-413'
 probe.annotations['package'] = 'A32'
