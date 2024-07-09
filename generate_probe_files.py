@@ -98,30 +98,27 @@ pi.write_probeinterface('A1x32-Poly5-6mm-35s-100_A32.json', probegroup)
 num_shank = 4
 num_site_per_shank = 8
 spacing = 50
+shank_spacing = 400
 rearrange_indices = [
-    0, 7, 1, 6, 2, 5, 3, 4,
-    8, 15, 9, 14, 10, 13, 11, 12,
-    16, 23, 17, 22, 18, 21, 19, 20,
-    24, 31, 25, 30, 26, 29, 27, 28]
+    0, 2, 4, 6, 7, 5, 3, 1,
+    8, 10, 12, 14, 15, 13, 11, 9,
+    16, 18, 20, 22, 23, 21, 19, 17,
+    24, 26, 28, 30, 31, 29, 27, 25]
 # Map from probe -> adaptor
 rearrange_to_adaptor = np.array([15,5,4,14,3,6,2,7,1,8,0,9,13,12,11,10,21,20,19,18,22,24,23,17,25,16,26,28,27,30,29,31])
 # Map from adaptor -> headstage amplifier
 rearrange_to_headstage = np.array([19,28,20,27,21,26,22,25,23,24,16,31,18,29,17,30,14,1,13,2,15,0,8,7,9,6,10,5,11,4,12,3])
 device_indices = rearrange_to_headstage[rearrange_to_adaptor]
 
-# Generate positions
-positions = []
-for shank in range(num_shank):
-    x = np.ones(num_site_per_shank) * shank
-    y = np.arange(num_site_per_shank) * spacing
-    positions.append(np.hstack((x[:, None], y[:, None])))
-positions = np.vstack(positions)
-positions = positions[rearrange_indices, :]
-
 # Generate probe
-probe = pi.Probe(ndim=2, si_units='um')
-probe.set_contacts(positions=positions, shapes='circle', shape_params={'radius' : np.sqrt(413/np.pi)})
-probe.create_auto_shape(probe_type='tip', margin=20)
+probe = pi.generate_multi_shank(
+    num_shank=num_shank, shank_pitch=[shank_spacing,0], num_columns=1, num_contact_per_column=num_site_per_shank, ypitch=spacing)
+shank_ids = np.hstack([np.ones(num_site_per_shank) * s for s in range(4)])
+probe.set_contacts(
+    positions=probe.contact_positions[rearrange_indices,:],
+    shank_ids=shank_ids[rearrange_indices],
+    shapes='circle', shape_params={'radius' : np.sqrt(413/np.pi)})
+probe.set_contact_ids(np.arange(32))
 probe.set_device_channel_indices(device_indices)
 probe.annotations['manufacturer'] = 'neuronexus'
 probe.annotations['name'] = 'A4x8-5mm-50-400-413'
