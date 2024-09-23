@@ -61,11 +61,7 @@ num_columns = 7
 xpitch, ypitch = 14, 35
 num_contact_per_column = [1, 6, 6, 6, 6, 6, 1]
 y_shift_per_column = 35*np.array([0, -5.5, -6, -6.5, -6, -5.5, 0]) + 30
-rearrange_indices = [1,0,2,3,4,5,6,
-                     8,9,10,11,12,7,
-                     13,15,17,18,16,14,
-                     19,24,23,22,21,20,
-                     30,29,28,27,26,31,25]
+rearrange_indices = np.array([1,0,2,3,4,5,6,8,9,10,11,12,7,13,15,17,18,16,14,19,24,23,22,21,20,30,29,28,27,26,31,25])
 # Map from probe -> adaptor
 rearrange_to_adaptor = np.array([15,5,4,14,3,6,2,7,1,8,0,9,13,12,11,10,21,20,19,18,22,24,23,17,25,16,26,28,27,30,29,31])
 # Map from adaptor -> headstage amplifier
