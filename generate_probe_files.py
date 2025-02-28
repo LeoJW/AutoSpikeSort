@@ -61,6 +61,10 @@ num_columns = 7
 xpitch, ypitch = 14, 35
 num_contact_per_column = [1, 6, 6, 6, 6, 6, 1]
 y_shift_per_column = 35*np.array([0, -5.5, -6, -6.5, -6, -5.5, 0]) + 30
+# Rearranges positions from order they are generated in to order given on channel map of probe
+# Index of each number implicitly defines the map
+# Ex: If the 0th entry of this array is the number '2', that means site at index 2 now is assigned to be site 0
+# (index -> value) encodes (new position/order -> old position/order)
 rearrange_indices = np.array([1,0,2,3,4,5,6,8,9,10,11,12,7,13,15,17,18,16,14,19,24,23,22,21,20,30,29,28,27,26,31,25])
 # Map from probe -> adaptor
 rearrange_to_adaptor = np.array([15,5,4,14,3,6,2,7,1,8,0,9,13,12,11,10,21,20,19,18,22,24,23,17,25,16,26,28,27,30,29,31])
@@ -95,6 +99,10 @@ num_shank = 4
 num_site_per_shank = 8
 spacing = 50
 shank_spacing = 400
+# Rearranges positions from order they are generated in to order given on channel map of probe
+# Index of each number implicitly defines the map
+# Ex: If the 0th entry of this array is the number '2', that means site at index 2 now is assigned to be site 0
+# (index -> value) encodes (new position/order -> old position/order)
 rearrange_indices = [
     0, 2, 4, 6, 7, 5, 3, 1,
     8, 10, 12, 14, 15, 13, 11, 9,
@@ -123,3 +131,69 @@ probegroup = pi.ProbeGroup()
 probegroup.add_probe(probe)
 pi.write_probeinterface('A4x8-5mm-50-400-413_A32.json', probegroup)
 
+
+
+#----- A4x4-3mm-50-125-177-A16, A16 acute package
+num_shank = 4
+num_site_per_shank = 4
+spacing = 50
+shank_spacing = 125
+# Rearranges positions from order they are generated in to order given on channel map of probe
+# Index of each number implicitly defines the map
+# Ex: If the 0th entry of this array is the number '2', that means site at index 2 now is assigned to be site 0
+# (index -> value) encodes (new position/order -> old position/order)
+rearrange_indices = np.array([3, 1, 2, 6, 4, 0, 7, 5, 8, 10, 13, 9, 11, 15, 12, 14])
+# Map from adaptor -> headstage amplifier
+rearrange_to_headstage = np.array([15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0])
+probe = pi.generate_multi_shank(
+    num_shank=num_shank, shank_pitch=[shank_spacing,0], num_columns=1, num_contact_per_column=num_site_per_shank, ypitch=spacing)
+
+shank_ids = np.hstack([np.ones(num_site_per_shank) * s for s in range(4)])
+probe.set_contacts(
+    positions=probe.contact_positions[rearrange_indices,:],
+    shank_ids=shank_ids[rearrange_indices],
+    shapes='circle', shape_params={'radius' : np.sqrt(177/np.pi)})
+probe.set_contact_ids(np.arange(16))
+probe.set_device_channel_indices(rearrange_to_headstage)
+probe.annotations['manufacturer'] = 'neuronexus'
+probe.annotations['name'] = 'A4x4-3mm-50-125-177-A16'
+probe.annotations['package'] = 'A16'
+probegroup = pi.ProbeGroup()
+probegroup.add_probe(probe)
+pi.write_probeinterface('A4x4-3mm-50-125-177_A16.json', probegroup)
+
+
+#----- A4x1-tet-3mm-150-121-A16, A16 acute package
+num_shank = 4
+num_site_per_shank = 4
+spacing = 50
+shank_spacing = 150
+# Rearranges positions from order they are generated in to order given on channel map of probe
+# Index of each number implicitly defines the map
+# Ex: If the 0th entry of this array is the number '2', that means site at index 2 now is assigned to be site 0
+# (index -> value) encodes (new position/order -> old position/order)
+rearrange_indices = np.array([0, 2, 3, 7, 5, 1, 4, 6, 9, 11, 14, 10, 8, 12, 13, 15])
+# Map from adaptor -> headstage amplifier
+rearrange_to_headstage = np.array([15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0])
+probe = pi.generate_multi_shank(
+    num_shank=num_shank, shank_pitch=[shank_spacing,0], num_columns=1, num_contact_per_column=num_site_per_shank, ypitch=spacing)
+# Alter contact positions to tetrode arrangement
+for i in np.unique(probe.contact_positions[:,0]):
+    mask = np.where(probe.contact_positions[:,0] == i)[0]
+    probe.contact_positions[mask[[1,2]],1] = 17.5
+    probe.contact_positions[mask[1],0] -= 17.5
+    probe.contact_positions[mask[2],0] += 17.5
+    probe.contact_positions[mask[3],1] = 35
+shank_ids = np.hstack([np.ones(num_site_per_shank) * s for s in range(num_shank)])
+probe.set_contacts(
+    positions=probe.contact_positions[rearrange_indices,:],
+    shank_ids=shank_ids[rearrange_indices],
+    shapes='rect', shape_params={'width' : np.sqrt(121), 'height' : np.sqrt(121)})
+probe.set_contact_ids(np.arange(16))
+probe.set_device_channel_indices(rearrange_to_headstage)
+probe.annotations['manufacturer'] = 'neuronexus'
+probe.annotations['name'] = 'A4x1-tet-3mm-150-121-A16'
+probe.annotations['package'] = 'A16'
+probegroup = pi.ProbeGroup()
+probegroup.add_probe(probe)
+pi.write_probeinterface('A4x1-tet-3mm-150-121_A16.json', probegroup)
